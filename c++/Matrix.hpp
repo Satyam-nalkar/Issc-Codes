@@ -1,17 +1,24 @@
-#include <iostream>
-#include <vector>
-
+#include<iostream>
+using namespace std;
+ 
 class Matrix {
-private:
+    private:
     int rows, cols;
-    std::vector<std::vector<int>> data;
+    int **data;
+     
+    public:
+    Matrix(int r = 0, int c= 0);
+    Matrix(const Matrix &other);        // Copy constructor
 
-public:
-    Matrix(int r, int c);
-    void input();
-    void display() const;
-    Matrix operator+(const Matrix &other) const;
-    Matrix operator-(const Matrix &other) const;
+    ~Matrix();
+     void input();
+     void display() const;
+     Matrix add(const Matrix & second) const;
+     Matrix sub(const Matrix & second) const;
+     Matrix mult(const Matrix & second) const;
+     void gaussElimination() const;
+     void backSubstitution(double x[]);
+     bool isIdentity() const;
+     bool isSymmetric() const;
+     
 };
-
-
