@@ -1,29 +1,28 @@
 #include<iostream>
-#include "cmplx.hpp"
+#include "cmplxVM.hpp"
 
-using namespace std;
 int main()
 {
     // Create objects
-    cmplx a, b, result;
+    cmplxVM obj1, obj2, result;
     
     // Initialize objects
-    a.real = 12;
-    a.img = 4;
-    b.real = 8;
-    b.img = 6;
+    obj1.real = 3.0;
+    obj1.img = 2.0;
+    obj2.real = 1.5;
+    obj2.img = 4.5;
     
     // Display the initial values
-    cout << "complex 1: ";
-    a.display();
-    cout << "complex 2: ";
-    b.display();
+    std::cout << "Object 1: ";
+    obj1.display();
+    std::cout << "Object 2: ";
+    obj2.display();
     
     // Add the two objects
-    result = a.add(b);
+    result = obj1.add(obj2);
     
     // Display the result
-    cout << "Result: ";
+    std::cout << "Result: ";
     result.display();
     
     return 0;
