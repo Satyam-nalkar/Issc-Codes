@@ -1,4 +1,47 @@
 #include "Matrix.hpp"
+#include <fstream>
+
+
+
+void Matrix::inputFromFile(const string &filename){
+
+    ifstream file(filename);
+    if (!file) {
+        cout << "Error opening file: " << filename << endl;
+        return;
+    }
+
+
+    // if (data) {  
+    //     for (int i = 0; i < rows; i++) {
+    //         delete[] data[i];
+    //     }
+    //     delete[] data;
+    // }
+
+    // file >> rows >> cols ;
+    // data = new int*[rows];
+    // for (int i = 0; i < rows; i++) {
+    //     data[i] = new int[cols];
+    //     for (int j = 0; j < cols; j++) {
+    //         file >> data[i][j];
+    //     }
+    // }
+
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (!(file >> data[i][j])) {  // if no data in the file
+                cout << "Error: Invalid data format in file.\n";
+                return;
+            }
+        }
+    }
+
+    
+
+    file.close();
+}
 
 Matrix::Matrix(int r, int c) {
     rows = r;
@@ -27,6 +70,7 @@ Matrix::~Matrix() {
         delete[] data[i];
     }
     delete[] data;
+    data = nullptr;
   }
 }
 
@@ -94,35 +138,74 @@ Matrix Matrix::mult(const Matrix & second) const{
 
 
 
-void Matrix::gaussElimination() const {
-    for(int k=0; k < rows -1; k++){
+Matrix Matrix::upperTriangular() const {
+    Matrix result4(*this);
+    for(int k=0; k < result4.rows -1; k++){
         if(data[k][k]==0){
-            for(int j= k + 1; j < cols -1; j++){
-                if(data[k][j] != 0){
-                   for( int i = 0; i< rows; i++) {
-                    swap(data[i][k],data[i][j]);
-                   } 
+            for(int i= k + 1; i < result4.rows; i++){
+                if(result4.data[i][k] != 0){
+                 {
+                   swap(result4.data[k],result4.data[i]);
+                 } 
                    break;
                 }
             }
         }
-    if(data[k][k] == 0){
+    if(result4.data[k][k] == 0){
         cout << "Matrix is singular.\n";
-        return;
+        return  Matrix(0,0); 
     }
 
-    for(int i=k+1; i<rows; i++){
-        double factor = data[i][k] / data[k][k];
-          for(int j= k+1; j<cols; j++){
-            data[i][j] -= factor * data[k][j];
+    for(int i=k+1; i<result4.rows; i++){
+        double factor = result4.data[i][k] / result4.data[k][k];
+          for(int j= k+1; j<result4.cols; j++){
+            result4.data[i][j] -= factor * result4.data[k][j];
         }
-        data[i][k] = 0;
+        result4.data[i][k] = 0;
+
       }
 
     }
+    return result4;
 }
 
-  // Back Substitution
+// Matrix Matrix::lowerTriangular() const {
+//     Matrix result5(*this); 
+
+//     for (int k = 0; k < result5.rows; k++) {  
+        
+//         if (result5.data[k][k] == 0) {
+//             for (int i = k + 1; i < result5.rows; i++) {
+//                 if (result5.data[i][k] != 0) {
+                    
+//                     swap(result5.data[k], result5.data[i]);
+//                     break;
+//                 }
+//             }
+//         }
+
+    
+//         if (result5.data[k][k] == 0) {
+//             cout << "Matrix is singular, cannot convert to lower triangular.\n";
+//             return Matrix(result5.rows, result5.cols);
+//         }
+
+    
+//         for (int i = 0; i < k; i++) {  
+//             double factor = result5.data[i][k] / result5.data[k][k];
+
+//             for (int j = k; j < result5.cols; j++) {  
+//                 result5.data[i][j] -= factor * result5.data[k][j];
+//             }
+//         }
+//     }
+
+//     return result5;  
+// }
+
+
+
+
   void Matrix::backSubstitution(double x[]) {  
     for (int i = rows - 1; i >= 0; i--) {
         if (data[i][i] == 0) {
@@ -136,6 +219,69 @@ void Matrix::gaussElimination() const {
         x[i] /= data[i][i];  
     }
 }
+
+
+
+void Matrix::luDecomposition(Matrix &L, Matrix &U) const {
+    if (rows != cols) {
+        cout << "LU Decomposition only works for square matrices.\n";
+        return;
+    }
+
+    // Initialize L and U with zeros
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            L.data[i][j] = 0;
+            U.data[i][j] = 0;
+        }
+    }
+
+    // LU Decomposition Logic
+    for (int i = 0; i < rows; i++) {
+        // **Upper Triangular Matrix (U)**
+        for (int k = i; k < cols; k++) {
+            double sum = 0;
+            for (int j = 0; j < i; j++) {
+                sum += L.data[i][j] * U.data[j][k];
+            }
+            U.data[i][k] = data[i][k] - sum;
+        }
+
+        // **Lower Triangular Matrix (L)**
+        for (int k = i; k < rows; k++) {
+            if (i == k) {
+                L.data[i][i] = 1;  // **L matrix diagonal 1**
+            } else {
+                int sum = 0;
+                for (int j = 0; j < i; j++) {
+                    sum += L.data[k][j] * U.data[j][i];
+                }
+                if (U.data[i][i] == 0) {
+                    cout << "LU Decomposition failed (zero pivot encountered).\n";
+                    return;
+                }
+                L.data[k][i] = (data[k][i] - sum) / U.data[i][i];
+            }
+        }
+    }
+}
+
+void Matrix::multiplyLU(const Matrix &L, const Matrix &U, Matrix &resultLU) const {
+    if (L.rows != rows || U.cols != cols) {
+        cout << "Matrix dimensions do not match for multiplication.\n";
+        return;
+    }
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            resultLU.data[i][j] = 0;  // Initialize result matrix with 0
+            for (int k = 0; k < rows; k++) {
+                resultLU.data[i][j] += L.data[i][k] * U.data[k][j];
+            }
+        }
+    }
+}
+
 
 
 
