@@ -1,20 +1,24 @@
 #include<iostream>
+#include<string>
 #include "Matrix.hpp"
  
 int main()
 {
     int rows,cols;
+    string filename1,filename2 ,fileLU;
     cout << "Enter the number of rows and colums:";
     cin >> rows >> cols;
 
    Matrix matrix1(rows,cols);
    Matrix matrix2(rows,cols);
    
-   cout << "Enter the value for Matrix 1:\n";
-   matrix1.input();
+   cout << "Enter filename for Matrix 1:\n";
+   cin >> filename1;
+   matrix1.inputFromFile(filename1);
   
-   cout << "Enter the value for Matrix 2:\n";
-   matrix2.input();
+   cout << "Enter filename for Matrix 2:\n";
+   cin >> filename2;
+   matrix2.inputFromFile(filename2);
     
    Matrix result = matrix1.add(matrix2);
    cout << "Summation of Matrix:\n";
@@ -47,17 +51,54 @@ int main()
     cout << "the matrix is not a symmetric matrix. \n";
     }
 
-  cout<<"Gauss elimination with basic pivoting.\n";
-  matrix1.gaussElimination();
 
-  double x[rows];
-  cout << "Back sunstitution.\n";
-  matrix1.backSubstitution(x);
+   cout<<"Gauss elimination with basic pivoting.\n";
+   Matrix result4 = matrix1.upperTriangular();
+   cout << "Upper triangular matrix:\n";
+   result4.display();
+  
+//   cout<<"lower triangular matrix:\n";
+//   Matrix result5 = matrix1.lowerTriangular();
+//   result5.display();
 
-  cout<<"values for x \n";
-  for(int i=0;i<rows;i++){
+
+
+
+
+   double x[rows];
+   cout << "Back sunstitution.\n";
+   result4.backSubstitution(x);
+
+
+   cout<<"values for x \n";
+   for(int i=0;i<rows;i++){
     cout << "x[" << i << "] = " << x[i] << endl;
-  }
+   }
+  
+
+
+   cout << "Enter filename for LU Decomposition matrix:\n";
+   cin >> fileLU;
+   Matrix matrixLU(rows, cols);
+   matrixLU.inputFromFile(fileLU);
+   
+   // LU Decomposition
+   Matrix L(rows, cols), U(rows, cols);
+   matrixLU.luDecomposition(L, U);
+   
+   cout << "Lower Triangular Matrix (L):\n";
+   L.display();
+   
+   cout << "Upper Triangular Matrix (U):\n";
+   U.display();
+
+
+   Matrix resultLU(rows, cols);
+   matrixLU.multiplyLU(L, U, resultLU);
+
+   cout << "Matrix obtained by multiplying L and U:\n";
+   resultLU.display();
+
 
    return 0;
 }
