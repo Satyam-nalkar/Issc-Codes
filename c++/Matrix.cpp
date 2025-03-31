@@ -1,88 +1,79 @@
 #include "Matrix.hpp"
 #include <fstream>
-
-
-
-void Matrix::inputFromFile(const string &filename){
-
+#include <iostream>
+using namespace std;
+void Matrix::inputFromFile(const string &filename) {
     ifstream file(filename);
     if (!file) {
         cout << "Error opening file: " << filename << endl;
         return;
     }
 
+    int newRows, newCols;
+    file >> newRows >> newCols;
 
-    // if (data) {  
-    //     for (int i = 0; i < rows; i++) {
-    //         delete[] data[i];
-    //     }
-    //     delete[] data;
-    // }
+    if (data && (newRows != rows || newCols != cols)) {
+        for (int i = 0; i < rows; i++) {
+            delete[] data[i];
+        }
+        delete[] data;
+        data = nullptr;
+    }
 
-    // file >> rows >> cols ;
-    // data = new int*[rows];
-    // for (int i = 0; i < rows; i++) {
-    //     data[i] = new int[cols];
-    //     for (int j = 0; j < cols; j++) {
-    //         file >> data[i][j];
-    //     }
-    // }
+    rows = newRows;
+    cols = newCols;
 
+    data = new double*[rows];
+    for (int i = 0; i < rows; i++) {
+        data[i] = new double[cols];
+    }
 
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            if (!(file >> data[i][j])) {  // if no data in the file
+            if (!(file >> data[i][j])) {
                 cout << "Error: Invalid data format in file.\n";
                 return;
             }
         }
     }
 
-    
-
     file.close();
 }
 
+//  Constructor
 Matrix::Matrix(int r, int c) {
     rows = r;
     cols = c;
-    data =new int*[rows];
+    data = new double*[rows];
     for (int i = 0; i < rows; i++) {
-        data[i] = new int[cols];
+        data[i] = new double[cols];
     }
 }
 
-Matrix::Matrix(const Matrix & other) {
+//  Copy Constructor
+Matrix::Matrix(const Matrix &other) {
     rows = other.rows;
     cols = other.cols;
-    data = new int*[rows];
+    data = new double*[rows];
     for (int i = 0; i < rows; i++) {
-        data[i] = new int[cols];
+        data[i] = new double[cols];
         for (int j = 0; j < cols; j++) {
             data[i][j] = other.data[i][j];
         }
     }
 }
 
+//  Destructor
 Matrix::~Matrix() {
-    if(data){
-    for(int i =0; i < rows; i++){
-        delete[] data[i];
-    }
-    delete[] data;
-    data = nullptr;
-  }
-}
-
-void Matrix::input() {
-    cout << "Enter elements for " << rows << "x" << cols << " matrix:\n";
-    for (int i = 0; i < rows; i++) {
-        for (int j = 0; j < cols; j++) {
-            cin >> data[i][j];
+    if (data) {
+        for (int i = 0; i < rows; i++) {
+            delete[] data[i];
         }
+        delete[] data;
     }
 }
 
+//  Display Matrix
 void Matrix::display() const {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -92,7 +83,13 @@ void Matrix::display() const {
     }
 }
 
+//  Matrix Addition
 Matrix Matrix::add(const Matrix& second) const {
+    if (rows != second.rows || cols != second.cols) {
+        cout << "Error: Matrices must have the same dimensions for addition!\n";
+        return Matrix(0, 0);
+    }
+
     Matrix result(rows, cols);
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
@@ -102,180 +99,152 @@ Matrix Matrix::add(const Matrix& second) const {
     return result;
 }
 
-Matrix Matrix::sub(const Matrix & second) const {
- Matrix result2(rows, cols);
- for(int i=0; i<rows; i++){
-    for(int j=0; j<cols; j++){
-   result2.data[i][j] = data[i][j] - second.data[i][j];
+//  Matrix Subtraction 
+Matrix Matrix::sub(const Matrix &second) const {
+    if (rows != second.rows || cols != second.cols) {
+        cout << "Error: Matrices must have the same dimensions for subtraction!\n";
+        return Matrix(0, 0);
     }
- } 
-   return result2;
+
+    Matrix result(rows, cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            result.data[i][j] = data[i][j] - second.data[i][j];
+        }
+    }
+    return result;
 }
 
-Matrix Matrix::mult(const Matrix & second) const{
+//  Matrix Multiplication 
+Matrix Matrix::mult(const Matrix &second) const {
     if (cols != second.rows) {
-        cout << "Matrices cannot be multiplied.\n";
-        return Matrix(0, 0); // Return empty matrix
+        cout << "Error: Matrices cannot be multiplied (incompatible dimensions)!\n";
+        return Matrix(0, 0);
     }
 
-    Matrix result3(rows, second.cols);
-    for(int i=0; i<rows; i++){
-        for(int j=0; j<second.cols; j++){     
-           result3.data[i][j]=0;
-
+    Matrix result(rows, second.cols);
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < second.cols; j++) {
+            result.data[i][j] = 0;
         }
     }
 
-     for(int i=0; i<rows; i++){
-          for(int j=0; j<second.cols; j++){
-             for(int k=0; k<cols; k++){
-                result3.data[i][j] += data[i][k] * second.data[k][j];
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < second.cols; j++) {
+            for (int k = 0; k < cols; k++) {
+                result.data[i][j] += data[i][k] * second.data[k][j];
             }
-          }
+        }
     }
-    return result3;
+
+    return result;
 }
 
-
-
-Matrix Matrix::upperTriangular() const {
-    Matrix result4(*this);
-    for(int k=0; k < result4.rows -1; k++){
-        if(data[k][k]==0){
-            for(int i= k + 1; i < result4.rows; i++){
-                if(result4.data[i][k] != 0){
-                 {
-                   swap(result4.data[k],result4.data[i]);
-                 } 
-                   break;
+// Gaussian Elimination
+void Matrix::gaussianElimination(Matrix& B) {
+    for (int k = 0; k < rows; k++) {
+        if (data[k][k] == 0) {
+            for (int i = k + 1; i < rows; i++) {
+                if (data[i][k] != 0) {
+                    swap(data[k], data[i]);
+                    swap(B.data[k], B.data[i]);
+                    break;
                 }
             }
         }
-    if(result4.data[k][k] == 0){
-        cout << "Matrix is singular.\n";
-        return  Matrix(0,0); 
-    }
 
-    for(int i=k+1; i<result4.rows; i++){
-        double factor = result4.data[i][k] / result4.data[k][k];
-          for(int j= k+1; j<result4.cols; j++){
-            result4.data[i][j] -= factor * result4.data[k][j];
+        for (int i = k + 1; i < rows; i++) {
+            double factor = static_cast<double>(data[i][k]) / data[k][k];
+            for (int j = k; j < cols; j++) {
+                data[i][j] -= factor * data[k][j];
+            }
+            B.data[i][0] -= factor * B.data[k][0];
         }
-        result4.data[i][k] = 0;
-
-      }
-
     }
-    return result4;
 }
 
-// Matrix Matrix::lowerTriangular() const {
-//     Matrix result5(*this); 
-
-//     for (int k = 0; k < result5.rows; k++) {  
-        
-//         if (result5.data[k][k] == 0) {
-//             for (int i = k + 1; i < result5.rows; i++) {
-//                 if (result5.data[i][k] != 0) {
-                    
-//                     swap(result5.data[k], result5.data[i]);
-//                     break;
-//                 }
-//             }
-//         }
-
-    
-//         if (result5.data[k][k] == 0) {
-//             cout << "Matrix is singular, cannot convert to lower triangular.\n";
-//             return Matrix(result5.rows, result5.cols);
-//         }
-
-    
-//         for (int i = 0; i < k; i++) {  
-//             double factor = result5.data[i][k] / result5.data[k][k];
-
-//             for (int j = k; j < result5.cols; j++) {  
-//                 result5.data[i][j] -= factor * result5.data[k][j];
-//             }
-//         }
-//     }
-
-//     return result5;  
-// }
-
-
-
-
-  void Matrix::backSubstitution(double x[]) {  
+// Back Substitution
+void Matrix::backSubstitution(Matrix& B, double X[]) {
     for (int i = rows - 1; i >= 0; i--) {
         if (data[i][i] == 0) {
             cout << "No unique solution exists.\n";
             return;
         }
-        x[i] = data[i][cols - 1];  
-        for (int j = i + 1; j < rows; j++) {
-            x[i] -= data[i][j] * x[j];
+        X[i] = B.data[i][0];
+        for (int j = i + 1; j < cols; j++) {
+            X[i] -= data[i][j] * X[j];
         }
-        x[i] /= data[i][i];  
+        X[i] /= data[i][i];
     }
 }
 
 
 
-void Matrix::luDecomposition(Matrix &L, Matrix &U) const {
-    if (rows != cols) {
-        cout << "LU Decomposition only works for square matrices.\n";
-        return;
-    }
+bool Matrix::isIdentity() const {
+    if (rows != cols) return false; // Identity matrix must be square
 
-    // Initialize L and U with zeros
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            L.data[i][j] = 0;
-            U.data[i][j] = 0;
+            if ((i == j && data[i][j] != 1) || (i != j && data[i][j] != 0)) {
+                return false;
+            }
         }
     }
+    return true;
+}
 
-    // LU Decomposition Logic
+//  Check if Matrix is Symmetric
+bool Matrix::isSymmetric() const {
+    if (rows != cols) return false; // Symmetric matrix must be square
+
     for (int i = 0; i < rows; i++) {
-        // **Upper Triangular Matrix (U)**
-        for (int k = i; k < cols; k++) {
-            double sum = 0;
-            for (int j = 0; j < i; j++) {
-                sum += L.data[i][j] * U.data[j][k];
+        for (int j = 0; j < cols; j++) {
+            if (data[i][j] != data[j][i]) {
+                return false;
             }
-            U.data[i][k] = data[i][k] - sum;
+        }
+    }
+    return true;
+}
+
+
+
+
+void Matrix::luDecomposition(Matrix& L, Matrix& U) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (j < i)
+                L.data[j][i] = 0;
+            else {
+                L.data[j][i] = data[j][i];
+                for (int k = 0; k < i; k++) {
+                    L.data[j][i] -= L.data[j][k] * U.data[k][i];
+                }
+            }
         }
 
-        // **Lower Triangular Matrix (L)**
-        for (int k = i; k < rows; k++) {
-            if (i == k) {
-                L.data[i][i] = 1;  // **L matrix diagonal 1**
-            } else {
-                int sum = 0;
-                for (int j = 0; j < i; j++) {
-                    sum += L.data[k][j] * U.data[j][i];
+        for (int j = 0; j < cols; j++) {
+            if (j < i)
+                U.data[i][j] = 0;
+            else if (j == i)
+                U.data[i][j] = 1;
+            else {
+                U.data[i][j] = data[i][j] / L.data[i][i];
+                for (int k = 0; k < i; k++) {
+                    U.data[i][j] -= (L.data[i][k] * U.data[k][j]) / L.data[i][i];
                 }
-                if (U.data[i][i] == 0) {
-                    cout << "LU Decomposition failed (zero pivot encountered).\n";
-                    return;
-                }
-                L.data[k][i] = (data[k][i] - sum) / U.data[i][i];
             }
         }
     }
 }
 
-void Matrix::multiplyLU(const Matrix &L, const Matrix &U, Matrix &resultLU) const {
-    if (L.rows != rows || U.cols != cols) {
-        cout << "Matrix dimensions do not match for multiplication.\n";
-        return;
-    }
 
+
+void Matrix::multiplyLU(const Matrix &L, const Matrix &U, Matrix &resultLU) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            resultLU.data[i][j] = 0;  // Initialize result matrix with 0
-            for (int k = 0; k < rows; k++) {
+            resultLU.data[i][j] = 0;
+            for (int k = 0; k < cols; k++) {
                 resultLU.data[i][j] += L.data[i][k] * U.data[k][j];
             }
         }
@@ -283,34 +252,63 @@ void Matrix::multiplyLU(const Matrix &L, const Matrix &U, Matrix &resultLU) cons
 }
 
 
-
-
-
-  bool Matrix::isIdentity() const 
- {
-   if(rows != cols)
-   return false;
-
-   for(int i =0; i<rows; i++){
-    for(int j=0; j<cols; j++){
-        if(i == j && data[i][j] !=1  ||  i != j && data[i][j] !=0){
-        return false;      
+bool Matrix::isDiagonallyDominant() {
+    for (int i = 0; i < rows; i++) {
+        double sum = 0;
+        for (int j = 0; j < cols; j++) {
+            if (i != j) {
+                sum += abs(data[i][j]);
+            }
         }
-    }
-   }
-   return true;
-}
-
-  bool Matrix::isSymmetric() const
-  {
-    if(rows!= cols)
-    return false;
-    for(int i=0; i<rows; i++){
-        for(int j=0; j<cols; j++){
-            if(data[i][j]!= data[j][i])
-            return false;
+        if (abs(data[i][i]) < sum) {
+            return false; // Not diagonally dominant
         }
     }
     return true;
+}
 
- }
+void Matrix::gaussSeidel(Matrix &B, double X[], int maxIterations, double tolerance) {
+    if (rows != cols) {
+        cout << "Error: Gauss-Seidel requires a square matrix.\n";
+        return;
+    }
+
+    if (!isDiagonallyDominant()) {
+        cout << "Error: The matrix is not diagonally dominant. Gauss-Seidel may not converge.\n";
+        return;
+    }
+
+    double *oldX = new double[rows];
+    for (int i = 0; i < rows; i++)
+     X[i] = 0; 
+    
+    for (int iter = 0; iter < maxIterations; iter++) {
+        for (int i = 0; i < rows; i++) 
+        oldX[i] = X[i]; 
+        for (int i = 0; i < rows; i++) {
+            double sum = B.data[i][0];
+            for (int j = 0; j < cols; j++) {
+                if (j != i) {
+                    sum -= data[i][j] * X[j];
+                }
+            }
+            X[i] = sum / data[i][i];
+        }
+
+        double maxDiff = 0;
+        for (int i = 0; i < rows; i++) {
+            maxDiff = max(maxDiff, abs(X[i] - oldX[i]));
+        }
+        if (maxDiff < tolerance) {
+            cout << "Converged in " << iter  << " iterations.\n";
+            // delete[] oldX;
+            return;
+        }
+    }
+    
+    cout << "Did not converge within " << maxIterations << " iterations.\n";
+    // delete[] oldX;
+}
+
+
+
