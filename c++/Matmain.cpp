@@ -1,104 +1,145 @@
-#include<iostream>
-#include<string>
+#include <iostream>
+#include <string>
 #include "Matrix.hpp"
- 
-int main()
-{
-    int rows,cols;
-    string filename1,filename2 ,fileLU;
-    cout << "Enter the number of rows and colums:";
-    cin >> rows >> cols;
+using namespace std;
+int main() {
+    string filename;
 
-   Matrix matrix1(rows,cols);
-   Matrix matrix2(rows,cols);
-   
-   cout << "Enter filename for Matrix 1:\n";
-   cin >> filename1;
-   matrix1.inputFromFile(filename1);
-  
-   cout << "Enter filename for Matrix 2:\n";
-   cin >> filename2;
-   matrix2.inputFromFile(filename2);
+    // Matrix Addition, Subtraction, and Multiplication
+    Matrix matrix1(0, 0), matrix2(0, 0);
     
-   Matrix result = matrix1.add(matrix2);
-   cout << "Summation of Matrix:\n";
-   result.display();
+    cout << "Enter filename for Matrix 1: ";
+    cin >> filename;
+    matrix1.inputFromFile(filename);
     
-   Matrix result2 = matrix1.sub(matrix2);
-   cout << "Subtraction of Matrix:\n";
-   result2.display();
-   
-   Matrix result3 = matrix1.mult(matrix2);
-   cout << "Multiplication of Matrix:\n";
-   result3.display();
+    cout << "Enter filename for Matrix 2: ";
+    cin >> filename;
+    matrix2.inputFromFile(filename);
 
-   
-   cout << "\n";
-   if(result3.isIdentity()){
-    cout << "the matrix is an identity matrix. \n";
-   }
-   else{
-    cout << "the matrix is not an identity matrix. \n";
+    if (matrix1.getRows() != matrix2.getRows() || matrix1.getCols() != matrix2.getCols()) {
+        cout << "Error: Matrices must have the same dimensions for addition and subtraction!\n";
+        return 1;
     }
-   
-
-
-   cout<<"\n";
-   if(result.isSymmetric()){
-    cout << "the matrix is a symmetric matrix. \n";
-   }
-   else{
-    cout << "the matrix is not a symmetric matrix. \n";
+    
+    Matrix result = matrix1.add(matrix2);
+    cout << "Summation of Matrix:\n";
+    result.display();
+    
+    Matrix result2 = matrix1.sub(matrix2);
+    cout << "Subtraction of Matrix:\n";
+    result2.display();
+    
+    if (matrix1.getCols() != matrix2.getRows()) {
+        cout << "Error: Matrices cannot be multiplied (incompatible dimensions)!\n";
+    } else {
+        Matrix result3 = matrix1.mult(matrix2);
+        cout << "Multiplication of Matrix:\n";
+        result3.display();
     }
 
+    // Identity and Symmetric Check
+    if (matrix1.isIdentity()) {
+        cout << "Matrix 1 is an identity matrix.\n";
+    } else {
+        cout << "Matrix 1 is not an identity matrix.\n";
+    }
 
-   cout<<"Gauss elimination with basic pivoting.\n";
-   Matrix result4 = matrix1.upperTriangular();
-   cout << "Upper triangular matrix:\n";
-   result4.display();
-  
-//   cout<<"lower triangular matrix:\n";
-//   Matrix result5 = matrix1.lowerTriangular();
-//   result5.display();
+    if (matrix1.isSymmetric()) {
+        cout << "Matrix 1 is symmetric.\n";
+    } else {
+        cout << "Matrix 1 is not symmetric.\n";
+    }
+
+    // Gaussian Elimination
+    Matrix A(0, 0), B(0, 1);
+    
+    cout << "Enter filename for Left Matrix (A): ";
+    cin >> filename;
+    A.inputFromFile(filename);
+    
+    cout << "Enter filename for Right Matrix (B): ";
+    cin >> filename;
+    B.inputFromFile(filename);
+
+    if (A.getRows() != B.getRows()) {
+        cout << "Error: A and B must have the same number of rows for Gaussian Elimination!\n";
+        return 1;
+    }
+
+    A.gaussianElimination(B);
+
+    double* solution = new double[A.getRows()];
+    A.backSubstitution(B, solution);
+    
+    cout << "Values for x:\n";
+    for (int i = 0; i < A.getRows(); i++) {
+        cout << "x[" << i << "] = " << solution[i] << endl;
+    }
+    delete[] solution;
+
+    // LU Decomposition
+    cout << "Enter filename for LU Decomposition matrix: ";
+    cin >> filename;
+    matrix1.inputFromFile(filename);
+    
+    if (matrix1.getRows() != matrix1.getCols()) {
+        cout << "Error: LU Decomposition only works for square matrices!\n";
+        return 1;
+    }
+
+    Matrix L(matrix1.getRows(), matrix1.getCols()), U(matrix1.getRows(), matrix1.getCols());
+    matrix1.luDecomposition(L, U);
+    
+    cout << "Lower Triangular Matrix (L):\n";
+    L.display();
+    cout << "Upper Triangular Matrix (U):\n";
+    U.display();
+
+    Matrix resultLU(matrix1.getRows(), matrix1.getCols());
+    matrix1.multiplyLU(L, U, resultLU);
+    
+    cout << "Matrix obtained by multiplying L and U:\n";
+    resultLU.display();
+    
 
 
+    //Gauss-Seidel Matrix
 
+    cout << "Enter filename for Gauss-Seidel matrix A: ";
+    cin >> filename;
+    A.inputFromFile(filename);
+    
+    cout << "Enter filename for Gauss-Seidel right-hand side B: ";
+    cin >> filename;
+    B.inputFromFile(filename);
+    
+    if (A.getRows() != A.getCols()) {
+        cout << "Error: Gauss-Seidel requires a square matrix!\n";
+        return 1;
+    }
+    
+    if (A.getRows() != B.getRows()) {
+        cout << "Error: A and B must have the same number of rows!\n";
+        return 1;
+    }
+    
+    double *X = new double[A.getRows()];
+    int maxIterations;
+    double tolerance;
+    
+    cout << "Enter maximum iterations for Gauss-Seidel: ";
+    cin >> maxIterations;
+    
+    cout << "Enter tolerance value for Gauss-Seidel: ";
+    cin >> tolerance;
+    
+    A.gaussSeidel(B, X, maxIterations, tolerance);
+    
+    cout << "Gauss-Seidel Solution:\n";
+    for (int i = 0; i < A.getRows(); i++) {
+        cout << "x[" << i << "] = " << X[i] << endl;
+    }
 
-
-   double x[rows];
-   cout << "Back sunstitution.\n";
-   result4.backSubstitution(x);
-
-
-   cout<<"values for x \n";
-   for(int i=0;i<rows;i++){
-    cout << "x[" << i << "] = " << x[i] << endl;
-   }
-  
-
-
-   cout << "Enter filename for LU Decomposition matrix:\n";
-   cin >> fileLU;
-   Matrix matrixLU(rows, cols);
-   matrixLU.inputFromFile(fileLU);
-   
-   // LU Decomposition
-   Matrix L(rows, cols), U(rows, cols);
-   matrixLU.luDecomposition(L, U);
-   
-   cout << "Lower Triangular Matrix (L):\n";
-   L.display();
-   
-   cout << "Upper Triangular Matrix (U):\n";
-   U.display();
-
-
-   Matrix resultLU(rows, cols);
-   matrixLU.multiplyLU(L, U, resultLU);
-
-   cout << "Matrix obtained by multiplying L and U:\n";
-   resultLU.display();
-
-
-   return 0;
+     delete[] X;
+    return 0;
 }
