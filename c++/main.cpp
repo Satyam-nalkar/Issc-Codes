@@ -1,17 +1,11 @@
-#include <stdio.h>
-#include "que1.hpp"
+#include<iostream>
+#include "que2.hpp"
+using namespace std;
 
-int main() {
-    int number, base;
-    
-    printf("Enter a positive integer and the base: ");
-    scanf("%d %d", &number, &base);
-    
-    if (base < 2 || base > 16) {
-        printf("Invalid base! Please enter a base between 2 and 16.\n");
-        return 1;
-    }
-
-    convertToBase(number, base);
+int main(){
+    string filename;
+    cout << "enter the filename" << endl;
+    cin >> filename;
+    analyzeFile(filename);
     return 0;
 }
