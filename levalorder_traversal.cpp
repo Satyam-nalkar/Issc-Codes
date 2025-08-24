@@ -69,7 +69,19 @@ void inOrder(Node*root){
     }
  }
   cout << endl;
+}
+
+ int height(Node*root){
+  if(root == NULL){
+  return 0;
+  }
+int leftht = height(root -> left);         
+int rightht = height(root -> right);         
+return max(leftht,rightht) + 1; 
  }
+ 
+ 
+
  
 
  
@@ -79,7 +91,9 @@ int main(){
    
 //    inOrder(root);
 //    cout << endl;
-   levelOrder(root);
-  
+   // levelOrder(root);
+
+   cout << "height :" << height(root) << endl;
+
  return 0;
 } 
