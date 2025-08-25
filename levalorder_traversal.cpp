@@ -80,7 +80,25 @@ int rightht = height(root -> right);
 return max(leftht,rightht) + 1; 
  }
  
+int count(Node* root){
+   if(root == NULL){
+      return 0; 
+   }
+  int left_count = count(root -> left);
+  int right_count = count(root -> right);
+  return left_count + right_count + 1;
+                               
+}
  
+int Sum(Node * root){
+   if(root == NULL){
+      return 0;
+   }
+int leftSum = Sum(root -> left);
+int rightSum = Sum(root -> right);
+return leftSum + rightSum + root -> data;
+
+}
 
  
 
@@ -93,7 +111,10 @@ int main(){
 //    cout << endl;
    // levelOrder(root);
 
-   cout << "height :"<< height(root) << endl;
+   cout << "height : "<< height(root) << endl;
+   cout << "count : "<< count(root) << endl;
+  
+
 
  return 0;
 } 
