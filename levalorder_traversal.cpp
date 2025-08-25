@@ -113,7 +113,7 @@ int main(){
 
    cout << "height : "<< height(root) << endl;
    cout << "count : "<< count(root) << endl;
-  
+    cout << "sum : "<< Sum(root) << endl;
 
 
  return 0;
