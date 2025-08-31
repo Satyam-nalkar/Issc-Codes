@@ -61,7 +61,7 @@ int main(){
     cout << "*";
 
     if(i != 0){
-      //space
+      //space before star
       for(int j = 0; j<2*i-1;j++){
         cout << " ";
       }  
@@ -73,7 +73,7 @@ int main(){
 
     // bottom part
      for(int i = 0; i < n-1; i++){
-    //space
+    //space before star
     for(int j = 0; j < i+1;j++){
       cout << " ";
       }
