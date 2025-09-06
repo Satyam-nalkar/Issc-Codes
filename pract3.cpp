@@ -8,6 +8,5 @@ int main(){
         int a = i * n;
         cout << a << endl;
     }
-    
     return 0;
 }
