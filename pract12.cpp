@@ -5,8 +5,9 @@ int main(){
     int n = 16;
     cout <<"Table of a number"<< endl;
     for(int i = 1; i <= 10; i++){
-        int a = i * n;
-        cout << a << endl;
+        
+        int A = i * n;
+        cout << A << endl;
     }
     return 0;
 }
